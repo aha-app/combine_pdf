@@ -473,6 +473,39 @@ module CombinePDF
       end
     end
 
+    # Overwrites any existing outline given a title, page_number mapping
+    def create_page_outline(outline_entries, document_title = "Document")
+      return if outline_entries.empty?
+      doc_outline = {
+        Title: document_title
+      }
+      root_outline = {
+        Type: :Outlines,
+        First: { referenced_object: doc_outline, is_reference_only: true },
+        Last: { referenced_object: doc_outline, is_reference_only: true },
+        Count: 1
+      }
+      page_entries = []
+      outline_entries.each do |p|
+        page_entries << {
+          Title: p[:title],
+          Parent: { referenced_object: doc_outline, is_reference_only: true },
+          Dest: { referenced_object: self.pages[p[:page_number]], is_reference_only: true },
+        }
+      end
+      page_entries.each_with_index do |p, idx|
+        unless idx==0
+          p[:Prev] = { referenced_object: page_entries[idx-1], is_reference_only: true }
+        end
+        unless idx == page_entries.length-1
+          p[:Next] = { referenced_object: page_entries[idx+1], is_reference_only: true }
+        end
+      end
+      doc_outline[:First] = { referenced_object: page_entries.first, is_reference_only: true }
+      doc_outline[:Last] = { referenced_object: page_entries.last, is_reference_only: true }
+      @outlines = root_outline
+    end
+
     # the form_data attribute is a Hash that corresponds to the PDF form data (if any).
     attr_reader :forms_data
 
