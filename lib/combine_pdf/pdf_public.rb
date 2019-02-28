@@ -485,7 +485,16 @@ module CombinePDF
         Last: { referenced_object: doc_outline, is_reference_only: true },
         Count: 1
       }
+
+      page_entries = build_page_entries(outline_entries, doc_outline)
+      add_page_links(page_entries, doc_outline)
+
+      @outlines = root_outline
+    end
+
+    def build_page_entries(outline_entries, doc_outline)
       page_entries = []
+
       outline_entries.each do |p|
         page_entries << {
           Title: p[:title],
@@ -493,6 +502,11 @@ module CombinePDF
           Dest: { referenced_object: self.pages[p[:page_number]], is_reference_only: true },
         }
       end
+
+      page_entries
+    end
+
+    def add_page_links(page_entries, doc_outline)
       page_entries.each_with_index do |p, idx|
         unless idx==0
           p[:Prev] = { referenced_object: page_entries[idx-1], is_reference_only: true }
@@ -503,7 +517,6 @@ module CombinePDF
       end
       doc_outline[:First] = { referenced_object: page_entries.first, is_reference_only: true }
       doc_outline[:Last] = { referenced_object: page_entries.last, is_reference_only: true }
-      @outlines = root_outline
     end
 
     # the form_data attribute is a Hash that corresponds to the PDF form data (if any).
