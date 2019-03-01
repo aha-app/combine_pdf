@@ -125,7 +125,11 @@ module CombinePDF
       # (using LESS-THAN SIGNs (3Ch) and GREATER-THAN SIGNs (3Eh)).
       out << "<<\n".force_encoding(Encoding::ASCII_8BIT)
       object.each do |key, value|
-        out << "#{object_to_pdf key} #{object_to_pdf value}\n".force_encoding(Encoding::ASCII_8BIT) unless PDF::PRIVATE_HASH_KEYS.include? key
+        if key == :Dest
+          out << "#{object_to_pdf key} [#{object_to_pdf value} /Fit]\n".force_encoding(Encoding::ASCII_8BIT) unless PDF::PRIVATE_HASH_KEYS.include? key
+        else
+          out << "#{object_to_pdf key} #{object_to_pdf value}\n".force_encoding(Encoding::ASCII_8BIT) unless PDF::PRIVATE_HASH_KEYS.include? key
+        end
       end
       object.delete :Length
       out << '>>'.force_encoding(Encoding::ASCII_8BIT)
